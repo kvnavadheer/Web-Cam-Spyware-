@@ -1,0 +1,65 @@
+Checked Camera Status: Enabled - 2025-08-16 16:51:52
+Checked Camera Status: Disabled - 2025-08-16 17:03:34
+Checked Camera Status: Disabled - 2025-08-16 17:13:12
+Camera Disabled - 2025-08-16 17:13:32
+Camera Enabled - 2025-08-16 17:13:57
+Checked Camera Status: Enabled - 2025-08-16 17:17:51
+Checked Camera Status: Enabled - 2025-08-16 17:21:10
+Camera Disabled - 2025-08-16 17:21:45
+Checked Camera Status: Disabled - 2025-08-16 17:27:20
+Camera Enabled - 2025-08-16 17:27:39
+Camera Disabled - 2025-08-16 17:46:54
+Camera Enabled - 2025-08-16 17:47:30
+Camera Enabled - 2025-08-16 17:49:39
+Attempting to restart as admin - 2025-08-16 18:14:13
+Restart command executed - 2025-08-16 18:14:15
+Attempting to restart as admin with params: "C:\Users\navad\Desktop\COde\webcam.py" - 2025-08-16 18:18:52
+ShellExecuteW returned: 42 - 2025-08-16 18:18:53
+Restart command executed successfully - 2025-08-16 18:18:53
+Attempting to restart as admin with path: C:\Users\navad\Desktop\COde\webcam.py, dir: C:\Users\navad\Desktop\COde - 2025-08-16 18:22:01
+ShellExecuteW returned: 42 - 2025-08-16 18:22:04
+Restart command executed successfully - 2025-08-16 18:22:04
+Attempting to restart as admin: C:\Users\navad\Desktop\COde\webcam.py - 2025-08-16 20:28:02
+ShellExecuteW returned: 42 - 2025-08-16 20:28:04
+Restarted as admin successfully - 2025-08-16 20:29:59
+Camera Disabled - 2025-08-16 21:47:50
+Camera Enabled - 2025-08-16 21:48:05
+Camera Disabled - 2025-08-16 21:49:40
+Camera Disabled - 2025-08-16 21:54:19
+Checked Status: Disabled - 2025-08-16 21:56:13
+Camera Enabled - 2025-08-16 21:56:37
+Camera Disabled - 2025-08-16 21:56:50
+Checked Status: Disabled - 2025-08-16 21:57:18
+Camera Enabled - 2025-08-16 21:57:24
+Checked Status: Enabled - 2025-08-16 22:53:11
+Checked Status: Enabled - 2025-08-16 22:53:11
+Camera Disabled - 2025-08-16 22:53:20
+Checked Status: Disabled - 2025-08-16 22:53:21
+Checked Status: Disabled - 2025-08-16 22:53:31
+Checked Status: Disabled - 2025-08-16 22:53:41
+Checked Status: Disabled - 2025-08-16 22:53:51
+Checked Status: Disabled - 2025-08-16 22:54:01
+Checked Status: Disabled - 2025-08-16 22:54:11
+Checked Status: Disabled - 2025-08-16 22:54:21
+Checked Status: Disabled - 2025-08-16 22:54:32
+Checked Status: Disabled - 2025-08-16 22:56:25
+Checked Status: Disabled - 2025-08-16 22:56:25
+Checked Status: Disabled - 2025-08-16 22:56:35
+Password reset to default via Forgot Password - 2025-08-17 08:53:34
+Camera Enabled - 2025-08-17 08:53:41
+OTP send failed: 587 STARTTLS failed: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond; 465 SSL failed: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond - 2025-08-17 09:01:47
+Camera Disabled - 2025-08-17 09:02:02
+OTP send failed: 587 STARTTLS failed: (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-32331167ff6sm7623224a91.27 - gsmtp'); 465 SSL failed: (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-32330fc5142sm7830346a91.8 - gsmtp') - 2025-08-17 09:14:55
+Camera Enabled - 2025-08-17 09:20:26
+Camera Enabled - 2025-08-17 09:25:51
+Camera Disabled - 2025-08-17 09:37:37
+Camera Enabled - 2025-08-17 09:37:55
+Camera Disabled - 2025-08-17 10:06:23
+Camera Disabled - 2025-08-17 10:08:29
+Camera Disabled - 2025-08-17 10:09:01
+Camera Enabled - 2025-08-17 10:54:34
+Camera Disabled - 2025-08-17 11:10:32
+Camera Enabled - 2025-08-17 11:17:38
+Camera Disabled - 2025-08-17 11:17:52
+Camera Enabled - 2025-08-17 12:31:05
+Camera Disabled - 2025-08-17 12:40:20

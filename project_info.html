@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Information</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f7f7f7; margin: 0; padding: 0; }
+    .container { width: 90%; max-width: 1100px; background: #fff; margin: 30px auto; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 10px; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap:wrap; }
+    h1 { margin: 0; font-size: 28px; color: #333; }
+    .header img { width: 100px; height: auto; }
+    p { margin-top: 15px; font-size: 16px; color: #444; line-height: 1.5; }
+    h2 { margin-top: 30px; font-size: 22px; color: #222; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    table, th, td { border: 1px solid #ddd; }
+    th { background-color: #f2f2f2; padding: 10px; text-align: left; font-weight: bold; }
+    td { padding: 10px; text-align: left; }
+    pre.code-block { background:#0d0d0d; color:#e6e6e6; padding: 15px; overflow:auto; max-height:600px; border-radius:6px; white-space:pre-wrap; word-wrap:break-word; }
+    .small { font-size:12px; color:#666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Project Information</h1>
+      <img src="https://cdn-icons-png.flaticon.com/512/921/921079.png" alt="Boy with laptop">
+    </div>
+
+    <p>
+      This project was developed by <b>Our Team </b> as part of a Cyber Security Internship.
+      This project is designed to <b>Secure the Organizations in Real World</b> from Cyber Frauds performed by Hackers.
+    </p>
+
+    <h2>Project Details</h2>
+    <table>
+      <tr><th>Project Detail</th><th>Value</th></tr>
+      <tr><td>Project Name</td><td>Web Cam Security from Spyware</td></tr>
+      <tr><td>Project Description</td><td>Implementing Physical Security Policy on Web Cam in Devices to prevent Spyware Activities</td></tr>
+      <tr><td>Project Start Date</td><td>01-May-2025</td></tr>
+      <tr><td>Project End Date</td><td>01-June-2025</td></tr>
+      <tr><td>Project Status</td><td>Completed</td></tr>
+    </table>
+
+    <h2>Developer Details</h2>
+    <table>
+      <tr><th>Name</th><th>Emp ID</th><th>Email</th></tr>
+      <tr><td>Komali Kadiyala</td><td>23C08#ST#IS#7781</td><td>komalikadiyala17@gmail.com</td></tr>
+      <tr><td>K Venkata Navadheer</td><td>23C08#ST#IS#7784</td><td>navadheer2004@gmail.com</td></tr>
+      <tr><td>Motupalli Sasanth</td><td>23C08#ST#IS#7786</td><td>motupalli021@gmail.com</td></tr>
+      <tr><td>Vanipenta Chaitanya</td><td>23C08#ST#IS#7775</td><td>munnareddy8208@gmail.com</td></tr>
+      <tr><td>G.Rama Krishna Prasad</td><td>23C08#ST#IS#7779</td><td>ramu4012y@gmail.com</td></tr>
+    </table>
+
+    <h2>Company Details</h2>
+    <table>
+      <tr><th>Company</th><th>Value</th></tr>
+      <tr><td>Name</td><td>Supraja Technologies</td></tr>
+      <tr><td>Email</td><td>contact@suprajatechnologies.com</td></tr>
+    </table>
+
+    <h2>Notes & Usage</h2>
+    <p class="small">This application is intended to be run on Windows. Camera enable/disable uses Windows registry commands requiring administrative privileges (UAC). Email sending requires a working Gmail SMTP App Password for the sender account.</p>
+
+    <h2>Source Code (this script)</h2>
+    <pre class="code-block">import tkinter as tk
+from tkinter import ttk, messagebox, simpledialog
+import os, webbrowser, hashlib, time, subprocess, smtplib, platform, random, ssl, html
+from email.mime.text import MIMEText
+
+# =========================
+# Paths &amp; Globals
+# =========================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+LOG_FILE = os.path.join(BASE_DIR, &quot;logs.txt&quot;)
+CONFIG_FILE = os.path.join(BASE_DIR, &quot;config.dat&quot;)     # stores hashed password (sha256)
+CRED_FILE = os.path.join(BASE_DIR, &quot;cred.dat&quot;)         # stores sender email + app password
+USER_FILE = os.path.join(BASE_DIR, &quot;user.dat&quot;)         # stores recovery email
+INFO_FILE = os.path.join(BASE_DIR, &quot;project_info.html&quot;)
+SETTINGS_FILE = os.path.join(BASE_DIR, &quot;settings.dat&quot;) # stores cooldown time (minutes)
+
+DEFAULT_SENDER = &quot;navadheer6730@gmail.com&quot;
+
+failed_attempts = 0
+max_attempts = 3
+lockout = False
+lockout_end = 0
+attempts_label = None
+cooldown_minutes = 5  # default, will be loaded from file
+
+# Ensure base dir exists (helpful if running from temp dirs)
+os.makedirs(BASE_DIR, exist_ok=True)
+
+# =========================
+# Settings
+# =========================
+def load_settings():
+    global cooldown_minutes
+    if not os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+            f.write(&quot;5&quot;)
+        cooldown_minutes = 5
+    else:
+        try:
+            with open(SETTINGS_FILE, encoding=&quot;utf-8&quot;) as f:
+                cooldown_minutes = int(f.read().strip())
+        except Exception:
+            cooldown_minutes = 5
+
+# =========================
+# Helpers
+# =========================
+def log_action(action):
+    with open(LOG_FILE, &quot;a&quot;, encoding=&quot;utf-8&quot;) as log:
+        log.write(f&quot;{action} - {time.strftime(&#x27;%Y-%m-%d %H:%M:%S&#x27;)}\n&quot;)
+
+def hash_password(password):
+    return hashlib.sha256(password.encode(&quot;utf-8&quot;)).hexdigest()
+
+def load_config():
+    if not os.path.exists(CONFIG_FILE):
+        return None
+    with open(CONFIG_FILE, encoding=&quot;utf-8&quot;) as f:
+        return f.read().strip()
+
+def save_config(password):
+    with open(CONFIG_FILE, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+        f.write(hash_password(password))
+
+def load_sender_credentials():
+    if not os.path.exists(CRED_FILE):
+        return None, None
+    with open(CRED_FILE, encoding=&quot;utf-8&quot;) as f:
+        lines = f.read().splitlines()
+        return (lines[0] if lines else None,
+                lines[1] if len(lines) &gt; 1 else None)
+
+def save_sender_credentials(email, app_pass):
+    with open(CRED_FILE, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+        f.write(email.strip() + &quot;\n&quot; + app_pass.strip())
+
+def save_user_email(email):
+    with open(USER_FILE, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+        f.write(email.strip())
+
+def load_user_email():
+    return open(USER_FILE, encoding=&quot;utf-8&quot;).read().strip() if os.path.exists(USER_FILE) else None
+
+# =========================
+# Email
+# =========================
+def _smtp_send(sender_email, sender_pass, msg):
+    ctx = ssl.create_default_context()
+    last_err = None
+    # Try STARTTLS 587 first
+    try:
+        with smtplib.SMTP(&quot;smtp.gmail.com&quot;, 587, timeout=60) as server:
+            server.ehlo()
+            server.starttls(context=ctx)
+            server.ehlo()
+            server.login(sender_email, sender_pass)
+            server.send_message(msg)
+        return
+    except Exception as e:
+        last_err = e
+    # Fallback SSL 465
+    try:
+        with smtplib.SMTP_SSL(&quot;smtp.gmail.com&quot;, 465, timeout=60, context=ctx) as server:
+            server.login(sender_email, sender_pass)
+            server.send_message(msg)
+        return
+    except Exception as e:
+        raise RuntimeError(f&quot;587 STARTTLS failed: {last_err}; 465 SSL failed: {e}&quot;)
+
+def send_email_alert():
+    owner_email = load_user_email()
+    sender_email, sender_pass = load_sender_credentials()
+    if not sender_email or not sender_pass or not owner_email:
+        messagebox.showerror(&quot;Email Error&quot;, &quot;Sender or recovery email not set.&quot;)
+        return
+
+    msg = MIMEText(
+        &quot;⚠️ SECURITY ALERT ⚠️\n\n&quot;
+        &quot;Someone entered the wrong password 3 times and is now locked out.\n&quot;
+        f&quot;Time: {time.strftime(&#x27;%Y-%m-%d %H:%M:%S&#x27;)}&quot;
+    )
+    msg[&quot;Subject&quot;] = &quot;Security Alert – User Locked Out&quot;
+    msg[&quot;From&quot;] = sender_email
+    msg[&quot;To&quot;] = owner_email
+
+    try:
+        _smtp_send(sender_email, sender_pass, msg)
+        log_action(&quot;Alert email sent to recovery email&quot;)
+    except Exception as e:
+        log_action(f&quot;Email send failed: {e}&quot;)
+
+# =========================
+# Auth / Setup
+# =========================
+def first_time_setup():
+    &quot;&quot;&quot;Runs on first launch: sets default password and asks for Gmail App Password + recovery email&quot;&quot;&quot;
+    default_pw = &quot;nani@29&quot;
+    app_pass = simpledialog.askstring(
+        &quot;Sender App Password&quot;,
+        f&quot;Enter Gmail App Password for {DEFAULT_SENDER}:&quot;,
+        show=&quot;*&quot;
+    )
+    recovery_email = simpledialog.askstring(&quot;Recovery Email&quot;, &quot;Enter your email for password resets:&quot;)
+
+    if app_pass and recovery_email:
+        save_config(default_pw)
+        save_sender_credentials(DEFAULT_SENDER, app_pass)
+        save_user_email(recovery_email)
+        messagebox.showinfo(
+            &quot;Success&quot;,
+            f&quot;Setup complete.\nDefault password is: {default_pw}\nRecovery email set: {recovery_email}&quot;
+        )
+        return True
+    else:
+        messagebox.showerror(&quot;Error&quot;, &quot;Setup failed. App password + recovery email required.&quot;)
+        return False
+
+def update_attempts_label():
+    global lockout, lockout_end
+    if attempts_label:
+        if lockout:
+            remaining = int(lockout_end - time.time())
+            if remaining &gt; 0:
+                m, s = divmod(remaining, 60)
+                attempts_label.config(text=f&quot;🔒 Locked out for {m:02d}:{s:02d}&quot;)
+            else:
+                attempts_label.config(text=&quot;Attempts left: 3&quot;)
+        else:
+            remaining = max_attempts - failed_attempts
+            attempts_label.config(text=f&quot;Attempts left: {remaining}&quot;)
+
+def check_password():
+    global failed_attempts, lockout, lockout_end
+    if lockout:
+        remaining = int(lockout_end - time.time())
+        if remaining &gt; 0:
+            messagebox.showwarning(&quot;Locked&quot;, f&quot;⚠️ Access locked. Wait {remaining//60}m {remaining%60}s.&quot;)
+            return False
+        else:
+            # cooldown finished
+            lockout = False
+            failed_attempts = 0
+            update_attempts_label()
+
+    stored = load_config()
+    if stored is None:
+        return first_time_setup()
+    else:
+        pw = simpledialog.askstring(&quot;Password&quot;, &quot;Enter password:&quot;, show=&quot;*&quot;)
+        if not pw:
+            return False
+        if hash_password(pw) == stored:
+            failed_attempts = 0
+            update_attempts_label()
+            return True
+        else:
+            failed_attempts += 1
+            update_attempts_label()
+            if failed_attempts &gt;= max_attempts:
+                lockout = True
+                lockout_end = time.time() + cooldown_minutes * 60
+                update_attempts_label()
+                messagebox.showerror(&quot;Locked&quot;, f&quot;⚠️ Wrong password 3 times. Locked for {cooldown_minutes} minutes.&quot;)
+                send_email_alert()
+            else:
+                messagebox.showerror(&quot;Error&quot;, &quot;Incorrect password!&quot;)
+            return False
+
+def change_password():
+    if not check_password():
+        return
+    stored = load_config()
+    if not stored:
+        messagebox.showerror(&quot;Error&quot;, &quot;No password set.&quot;)
+        return
+    current = simpledialog.askstring(&quot;Change Password&quot;, &quot;Enter current password:&quot;, show=&quot;*&quot;)
+    if not current:
+        return
+    if hash_password(current) == stored:
+        new = simpledialog.askstring(&quot;Change Password&quot;, &quot;Enter new password:&quot;, show=&quot;*&quot;)
+        confirm = simpledialog.askstring(&quot;Change Password&quot;, &quot;Confirm new password:&quot;, show=&quot;*&quot;)
+        if new and confirm and new == confirm:
+            save_config(new)
+            messagebox.showinfo(&quot;Success&quot;, &quot;Password changed!&quot;)
+        else:
+            messagebox.showerror(&quot;Error&quot;, &quot;Passwords do not match.&quot;)
+    else:
+        messagebox.showerror(&quot;Error&quot;, &quot;Incorrect password.&quot;)
+
+# =========================
+# Forgot Password (OTP)
+# =========================
+def forgot_password():
+    sender_email, sender_pass = load_sender_credentials()
+    user_email = load_user_email()
+
+    if not sender_email or not sender_pass or not user_email:
+        messagebox.showerror(&quot;Error&quot;, &quot;Setup incomplete. Run first-time setup again.&quot;)
+        return
+
+    entered = simpledialog.askstring(&quot;Forgot Password&quot;, &quot;Enter your registered email:&quot;)
+    if not entered or entered.strip() != user_email:
+        messagebox.showerror(&quot;Error&quot;, &quot;Email not recognized.&quot;)
+        return
+
+    otp = str(random.randint(100000, 999999))
+    try:
+        msg = MIMEText(f&quot;Your OTP is: {otp}\nThis OTP is valid for 5 minutes.&quot;)
+        msg[&quot;Subject&quot;] = &quot;Password Reset OTP&quot;
+        msg[&quot;From&quot;] = sender_email
+        msg[&quot;To&quot;] = user_email
+        _smtp_send(sender_email, sender_pass, msg)
+        messagebox.showinfo(&quot;OTP Sent&quot;, f&quot;An OTP has been sent to {user_email}&quot;)
+    except Exception as e:
+        messagebox.showerror(&quot;Error&quot;, f&quot;Failed to send OTP: {e}&quot;)
+        log_action(f&quot;OTP send failed: {e}&quot;)
+        return
+
+    start_ts = time.time()
+    entered_otp = simpledialog.askstring(&quot;OTP Verification&quot;, &quot;Enter the OTP sent to your email:&quot;)
+    if not entered_otp:
+        return
+    if time.time() - start_ts &gt; 300:
+        messagebox.showerror(&quot;Error&quot;, &quot;OTP expired. Please try again.&quot;)
+        log_action(&quot;Password reset failed: OTP expired&quot;)
+        return
+    if entered_otp.strip() != otp:
+        messagebox.showerror(&quot;Error&quot;, &quot;Incorrect OTP! Password reset failed.&quot;)
+        log_action(&quot;Password reset failed: incorrect OTP&quot;)
+        return
+
+    new_pw = simpledialog.askstring(&quot;New Password&quot;, &quot;Enter new password:&quot;, show=&quot;*&quot;)
+    confirm_pw = simpledialog.askstring(&quot;Confirm Password&quot;, &quot;Confirm new password:&quot;, show=&quot;*&quot;)
+    if not new_pw or not confirm_pw:
+        messagebox.showerror(&quot;Error&quot;, &quot;Password fields cannot be empty.&quot;)
+        return
+    if new_pw != confirm_pw:
+        messagebox.showerror(&quot;Error&quot;, &quot;Passwords do not match.&quot;)
+        return
+
+    save_config(new_pw)
+    messagebox.showinfo(&quot;Success&quot;, &quot;Password reset successful!&quot;)
+    log_action(&quot;Password reset successful via OTP&quot;)
+
+# =========================
+# Camera Controls (Windows)
+# =========================
+def update_status_label(status):
+    if status == &quot;Enabled&quot;:
+        status_label.config(text=&quot;🟢 Enabled &quot;, fg=&quot;lime&quot;)
+    elif status == &quot;Disabled&quot;:
+        status_label.config(text=&quot;🔴 Disabled&quot;, fg=&quot;red&quot;)
+    else:
+        status_label.config(text=&quot;⚪ Unknown&quot;, fg=&quot;gray&quot;)
+
+def disable_camera():
+    if not check_password():
+        return
+    try:
+        cmd = [
+            &quot;powershell&quot;, &quot;Start-Process&quot;, &quot;reg&quot;,
+            &quot;-ArgumentList&quot;,
+            &quot;&#x27;add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\webcam &quot;
+            &quot;/v Value /t REG_SZ /d Deny /f&#x27;&quot;,
+            &quot;-Verb&quot;, &quot;runAs&quot;
+        ]
+        subprocess.run(cmd, check=True)
+        log_action(&quot;Camera Disabled&quot;)
+        messagebox.showinfo(&quot;Success&quot;, &quot;Camera disabled.&quot;)
+        update_status_label(&quot;Disabled&quot;)
+    except Exception as e:
+        messagebox.showerror(&quot;Error&quot;, f&quot;Failed:\n{e}&quot;)
+
+def enable_camera():
+    if not check_password():
+        return
+    try:
+        cmd = [
+            &quot;powershell&quot;, &quot;Start-Process&quot;, &quot;reg&quot;,
+            &quot;-ArgumentList&quot;,
+            &quot;&#x27;add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\CapabilityAccessManager\\ConsentStore\\webcam &quot;
+            &quot;/v Value /t REG_SZ /d Allow /f&#x27;&quot;,
+            &quot;-Verb&quot;, &quot;runAs&quot;
+        ]
+        subprocess.run(cmd, check=True)
+        log_action(&quot;Camera Enabled&quot;)
+        messagebox.showinfo(&quot;Success&quot;, &quot;Camera enabled.&quot;)
+        update_status_label(&quot;Enabled&quot;)
+    except Exception as e:
+        messagebox.showerror(&quot;Error&quot;, f&quot;Failed:\n{e}&quot;)
+
+def check_status(show_popup=True):
+    try:
+        result = subprocess.check_output(
+            r&#x27;reg query &quot;HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam&quot; /v Value&#x27;,
+            shell=True
+        ).decode(errors=&quot;ignore&quot;)
+        status = &quot;Disabled&quot; if &quot;Deny&quot; in result else &quot;Enabled&quot; if &quot;Allow&quot; in result else &quot;Unknown&quot;
+        if show_popup:
+            messagebox.showinfo(&quot;Camera Status&quot;, f&quot;Camera is {status}&quot;)
+        update_status_label(status)
+        return status
+    except Exception as e:
+        if show_popup:
+            messagebox.showerror(&quot;Error&quot;, f&quot;Unable to check:\n{e}&quot;)
+        update_status_label(&quot;Unknown&quot;)
+        return &quot;Unknown&quot;
+
+def refresh_status():
+    update_attempts_label()
+    try:
+        root.after(1000, refresh_status)
+    except tk.TclError:
+        # window closed
+        pass
+
+# =========================
+# Misc
+# =========================
+def view_logs():
+    if os.path.exists(LOG_FILE):
+        if platform.system() == &quot;Windows&quot;:
+            os.startfile(LOG_FILE)
+        elif platform.system() == &quot;Darwin&quot;:
+            subprocess.call([&quot;open&quot;, LOG_FILE])
+        else:
+            subprocess.call([&quot;xdg-open&quot;, LOG_FILE])
+    else:
+        messagebox.showinfo(&quot;Logs&quot;, &quot;No logs available.&quot;)
+
+def project_info():
+    &quot;&quot;&quot;
+    Generates the project info HTML file and opens it.
+    Also includes a &#x27;Source Code&#x27; section showing this script&#x27;s contents (HTML-escaped).
+    &quot;&quot;&quot;
+    # Attempt to read this script&#x27;s source for embedding
+    try:
+        with open(__file__, &quot;r&quot;, encoding=&quot;utf-8&quot;) as sf:
+            raw_source = sf.read()
+            source_html = html.escape(raw_source)
+    except Exception:
+        source_html = &quot;Source code not available.&quot;
+
+    html_content = f&quot;&quot;&quot;&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;title&gt;Project Information&lt;/title&gt;
+  &lt;style&gt;
+    body {{ font-family: Arial, sans-serif; background-color: #f7f7f7; margin: 0; padding: 0; }}
+    .container {{ width: 90%; max-width: 1100px; background: #fff; margin: 30px auto; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 10px; }}
+    .header {{ display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap:wrap; }}
+    h1 {{ margin: 0; font-size: 28px; color: #333; }}
+    .header img {{ width: 100px; height: auto; }}
+    p {{ margin-top: 15px; font-size: 16px; color: #444; line-height: 1.5; }}
+    h2 {{ margin-top: 30px; font-size: 22px; color: #222; border-bottom: 2px solid #ccc; padding-bottom: 5px; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+    table, th, td {{ border: 1px solid #ddd; }}
+    th {{ background-color: #f2f2f2; padding: 10px; text-align: left; font-weight: bold; }}
+    td {{ padding: 10px; text-align: left; }}
+    pre.code-block {{ background:#0d0d0d; color:#e6e6e6; padding: 15px; overflow:auto; max-height:600px; border-radius:6px; white-space:pre-wrap; word-wrap:break-word; }}
+    .small {{ font-size:12px; color:#666; }}
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;container&quot;&gt;
+    &lt;div class=&quot;header&quot;&gt;
+      &lt;h1&gt;Project Information&lt;/h1&gt;
+      &lt;img src=&quot;https://cdn-icons-png.flaticon.com/512/921/921079.png&quot; alt=&quot;Boy with laptop&quot;&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;
+      This project was developed by &lt;b&gt;Our Team &lt;/b&gt; as part of a Cyber Security Internship.
+      This project is designed to &lt;b&gt;Secure the Organizations in Real World&lt;/b&gt; from Cyber Frauds performed by Hackers.
+    &lt;/p&gt;
+
+    &lt;h2&gt;Project Details&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Project Detail&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Project Name&lt;/td&gt;&lt;td&gt;Web Cam Security from Spyware&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Project Description&lt;/td&gt;&lt;td&gt;Implementing Physical Security Policy on Web Cam in Devices to prevent Spyware Activities&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Project Start Date&lt;/td&gt;&lt;td&gt;01-May-2025&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Project End Date&lt;/td&gt;&lt;td&gt;01-June-2025&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Project Status&lt;/td&gt;&lt;td&gt;Completed&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;h2&gt;Developer Details&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Emp ID&lt;/th&gt;&lt;th&gt;Email&lt;/th&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Komali Kadiyala&lt;/td&gt;&lt;td&gt;23C08#ST#IS#7781&lt;/td&gt;&lt;td&gt;komalikadiyala17@gmail.com&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;K Venkata Navadheer&lt;/td&gt;&lt;td&gt;23C08#ST#IS#7784&lt;/td&gt;&lt;td&gt;navadheer2004@gmail.com&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Motupalli Sasanth&lt;/td&gt;&lt;td&gt;23C08#ST#IS#7786&lt;/td&gt;&lt;td&gt;motupalli021@gmail.com&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Vanipenta Chaitanya&lt;/td&gt;&lt;td&gt;23C08#ST#IS#7775&lt;/td&gt;&lt;td&gt;munnareddy8208@gmail.com&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;G.Rama Krishna Prasad&lt;/td&gt;&lt;td&gt;23C08#ST#IS#7779&lt;/td&gt;&lt;td&gt;ramu4012y@gmail.com&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;h2&gt;Company Details&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Company&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Name&lt;/td&gt;&lt;td&gt;Supraja Technologies&lt;/td&gt;&lt;/tr&gt;
+      &lt;tr&gt;&lt;td&gt;Email&lt;/td&gt;&lt;td&gt;contact@suprajatechnologies.com&lt;/td&gt;&lt;/tr&gt;
+    &lt;/table&gt;
+
+    &lt;h2&gt;Notes &amp; Usage&lt;/h2&gt;
+    &lt;p class=&quot;small&quot;&gt;This application is intended to be run on Windows. Camera enable/disable uses Windows registry commands requiring administrative privileges (UAC). Email sending requires a working Gmail SMTP App Password for the sender account.&lt;/p&gt;
+
+    &lt;h2&gt;Source Code (this script)&lt;/h2&gt;
+    &lt;pre class=&quot;code-block&quot;&gt;{source_html}&lt;/pre&gt;
+  &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+&quot;&quot;&quot;
+    with open(INFO_FILE, &quot;w&quot;, encoding=&quot;utf-8&quot;) as f:
+        f.write(html_content)
+    webbrowser.open(INFO_FILE)
+
+# =========================
+# GUI
+# =========================
+root = tk.Tk()
+root.title(&quot;Webcam Spyware Security&quot;)
+root.geometry(&quot;600x720&quot;)
+root.resizable(False, False)
+
+style = ttk.Style()
+try:
+    style.theme_use(&quot;clam&quot;)
+except Exception:
+    pass  # fallback to default if clam not available
+
+# Premium styles
+style.configure(&quot;TButton&quot;, font=(&quot;Segoe UI&quot;, 12, &quot;bold&quot;), padding=12, background=&quot;#4CAF50&quot;, foreground=&quot;white&quot;)
+style.map(&quot;TButton&quot;, background=[(&quot;active&quot;, &quot;#45a049&quot;)])
+style.configure(&quot;Header.TLabel&quot;, font=(&quot;Segoe UI&quot;, 20, &quot;bold&quot;), foreground=&quot;#FFD700&quot;)
+style.configure(&quot;Status.TLabel&quot;, font=(&quot;Segoe UI&quot;, 14, &quot;italic&quot;))
+style.configure(&quot;Attempts.TLabel&quot;, font=(&quot;Segoe UI&quot;, 12), foreground=&quot;#BDBDBD&quot;)
+style.configure(&quot;Theme.TButton&quot;, font=(&quot;Segoe UI&quot;, 10), padding=5)
+
+def apply_dark():
+    root.configure(bg=&quot;#121212&quot;)
+    header.configure(bg=&quot;#1f1f1f&quot;)
+    title_label.configure(background=&quot;#1f1f1f&quot;, foreground=&quot;#FFD700&quot;)
+    status_frame.configure(bg=&quot;#121212&quot;)
+    status_label.configure(background=&quot;#121212&quot;, foreground=&quot;white&quot;)
+    attempts_label.configure(background=&quot;#121212&quot;, foreground=&quot;#BDBDBD&quot;)
+    theme_frame.configure(bg=&quot;#121212&quot;)
+    style.configure(&quot;TButton&quot;, background=&quot;#333333&quot;, foreground=&quot;white&quot;)
+    style.map(&quot;TButton&quot;, background=[(&quot;active&quot;, &quot;#444444&quot;)], foreground=[(&quot;active&quot;, &quot;white&quot;)])
+    style.configure(&quot;Theme.TButton&quot;, background=&quot;#1f1f1f&quot;, foreground=&quot;white&quot;)
+    style.map(&quot;Theme.TButton&quot;, background=[(&quot;active&quot;, &quot;#2f2f2f&quot;)])
+
+def apply_light():
+    root.configure(bg=&quot;#f0f0f0&quot;)
+    header.configure(bg=&quot;#e0e0e0&quot;)
+    title_label.configure(background=&quot;#e0e0e0&quot;, foreground=&quot;#333333&quot;)
+    status_frame.configure(bg=&quot;#f0f0f0&quot;)
+    status_label.configure(background=&quot;#f0f0f0&quot;, foreground=&quot;black&quot;)
+    attempts_label.configure(background=&quot;#f0f0f0&quot;, foreground=&quot;#333333&quot;)
+    theme_frame.configure(bg=&quot;#f0f0f0&quot;)
+    style.configure(&quot;TButton&quot;, background=&quot;#ffffff&quot;, foreground=&quot;black&quot;)
+    style.map(&quot;TButton&quot;, background=[(&quot;active&quot;, &quot;#dddddd&quot;)], foreground=[(&quot;active&quot;, &quot;black&quot;)])
+    style.configure(&quot;Theme.TButton&quot;, background=&quot;#e0e0e0&quot;, foreground=&quot;black&quot;)
+    style.map(&quot;Theme.TButton&quot;, background=[(&quot;active&quot;, &quot;#d0d0d0&quot;)])
+
+header = tk.Frame(root, bg=&quot;#1f1f1f&quot;, height=60)
+header.pack(fill=&quot;x&quot;)
+
+title_label = ttk.Label(
+    header,
+    text=&quot;📷 Webcam Spyware Security&quot;,
+    style=&quot;Header.TLabel&quot;
+)
+title_label.pack(pady=15)
+
+status_frame = tk.Frame(root, bg=&quot;#121212&quot;)
+status_frame.pack(pady=15)
+tk.Label(status_frame, text=&quot;Camera Status: &quot;, font=(&quot;Segoe UI&quot;, 14, &quot;bold&quot;), bg=&quot;#121212&quot;, fg=&quot;white&quot;).grid(row=0, column=0)
+status_label = tk.Label(status_frame, text=&quot;⚪ Unknown&quot;, font=(&quot;Segoe UI&quot;, 14, &quot;italic&quot;), bg=&quot;#121212&quot;, fg=&quot;gray&quot;)
+status_label.grid(row=0, column=1, padx=10)
+
+main_frame = tk.Frame(root, bg=&quot;#121212&quot;)
+main_frame.pack(pady=10, padx=20, fill=&quot;x&quot;)
+
+btn_enable = ttk.Button(main_frame, text=&quot;Enable Camera&quot;, style=&quot;TButton&quot;,
+                       command=enable_camera, width=30)
+btn_enable.pack(pady=8, fill=&quot;x&quot;)
+
+btn_disable = ttk.Button(main_frame, text=&quot;Disable Camera&quot;, style=&quot;TButton&quot;,
+                        command=disable_camera, width=30)
+btn_disable.pack(pady=8, fill=&quot;x&quot;)
+
+btn_logs = ttk.Button(main_frame, text=&quot;View Logs&quot;, style=&quot;TButton&quot;,
+                     command=view_logs, width=30)
+btn_logs.pack(pady=8, fill=&quot;x&quot;)
+
+btn_info = ttk.Button(main_frame, text=&quot;Project Info&quot;, style=&quot;TButton&quot;,
+                     command=project_info, width=30)
+btn_info.pack(pady=8, fill=&quot;x&quot;)
+
+btn_change_pw = ttk.Button(main_frame, text=&quot;Change Password&quot;, style=&quot;TButton&quot;,
+                          command=change_password, width=30)
+btn_change_pw.pack(pady=8, fill=&quot;x&quot;)
+
+btn_forgot = ttk.Button(main_frame, text=&quot;Forgot Password&quot;, style=&quot;TButton&quot;,
+                       command=forgot_password, width=30)
+btn_forgot.pack(pady=8, fill=&quot;x&quot;)
+
+attempts_label = ttk.Label(root, text=&quot;Attempts left: 3&quot;, style=&quot;Attempts.TLabel&quot;)
+attempts_label.pack(pady=15)
+
+theme_frame = tk.Frame(root, bg=&quot;#121212&quot;)
+theme_frame.pack(pady=10)
+ttk.Button(theme_frame, text=&quot;🌙 Dark&quot;, command=apply_dark, style=&quot;Theme.TButton&quot;).grid(row=0, column=1, padx=5)
+ttk.Button(theme_frame, text=&quot;☀️ Light&quot;, command=apply_light, style=&quot;Theme.TButton&quot;).grid(row=0, column=2, padx=5)
+
+# =========================
+# Bootstrap
+# =========================
+apply_dark()
+load_settings()
+# Do not show a popup on startup; just try to determine status silently
+try:
+    check_status(show_popup=False)
+except Exception:
+    pass
+refresh_status()
+root.mainloop()</pre>
+  </div>
+</body>
+</html>
